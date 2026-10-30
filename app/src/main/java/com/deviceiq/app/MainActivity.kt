@@ -57,6 +57,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
+import com.deviceiq.app.data.battery.BatteryInfoProvider
+import com.deviceiq.app.data.battery.BatteryRepository
+import com.deviceiq.app.data.battery.local.DeviceIQDatabase
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +80,30 @@ fun DeviceIQApp() {
 
     val deviceInfoProvider = remember {
         DeviceInfoProvider(context)
+    }
+
+    val batteryInfoProvider = remember {
+        BatteryInfoProvider(context)
+    }
+
+    val database = remember {
+        DeviceIQDatabase.getInstance(context)
+    }
+
+    val batteryRepository = remember {
+        BatteryRepository(
+            batteryInfoProvider = batteryInfoProvider,
+            batterySnapshotDao = database.batterySnapshotDao()
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+
+            batteryRepository.collectAndSaveSnapshot()
+
+            delay(30 * 1000L)
+        }
     }
 
     var deviceInfo by remember {
